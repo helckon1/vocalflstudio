@@ -27,11 +27,19 @@ public:
 private:
     static juce::AudioProcessorValueTreeState::ParameterLayout makeParameters();
     juce::AudioProcessorValueTreeState params;
-    juce::dsp::StateVariableTPTFilter<float> highpass;
+    juce::dsp::StateVariableTPTFilter<float> highpass, sibilanceFilter;
     juce::Reverb reverb;
     juce::AudioBuffer<float> delayBuffer, wetBuffer;
     int delayWrite = 0;
     double sampleRateHz = 44100.0;
-    float envelope = 0.0f;
+    float envelope = 0.0f, sibilanceEnvelope = 0.0f;
+    static constexpr int tuneRingSize = 8192;
+    std::array<std::array<float, tuneRingSize>, 2> tuneRing {};
+    std::array<float, 2048> pitchHistory {};
+    int tuneWrite = 0, pitchWrite = 0, pitchCounter = 0;
+    float tunePhase = 0.0f, targetRatio = 1.0f, currentRatio = 1.0f;
+    void updatePitch(float strength, int key, int scale);
+    float readTuneRing(int channel, float delay) const;
+    std::array<float, 2> toneLow {0.0f, 0.0f};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VocalAtmosphere)
 };
